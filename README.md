@@ -9,7 +9,7 @@ purpose. `docs/jinshi.md` is the full account: threat model, every examination, 
 
 | path | what |
 |---|---|
-| `Jinshi/` | one Lean file per in-process examination (`tcb`, `shadow`, `nearname`, `arith`, `dossier`, `content`, `decide`, `duplicate`, `instdrift`, `unusedhyp`, `roundtrip`, `forensics`, `importance`, `lineage`); `Base.lean` holds the shared `Finding` and context |
+| `Jinshi/` | one Lean file per in-process examination (`tcb`, `shadow`, `nearname`, `arith`, `dossier`, `content`, `decide`, `duplicate`, `instdrift`, `unusedhyp`, `roundtrip`, `forensics`, `importance`, `lineage`, `necessity`, `entailed`); `Base.lean` holds the shared `Finding` and context |
 | `TengokuJinshi.lean` | the executable: imports every examination and registers it; regenerated from `Jinshi/` |
 | `scripts/jinshi/run.py` | the round driver: kernel replay (leanchecker and lean4lean), autoImplicit re-elaboration, olean reproducibility, option audit, toolchain watch, then the executable's checks; emits one JSONL per check |
 | `scripts/jinshi/partition.py` | the frozen 10-round partition of the tree (`tools/jinshi/partition.tsv`) |
@@ -35,6 +35,6 @@ the kernel's verdict and the tree disagree; `warn` is something a maintainer rea
 
 ## Status
 
-Sixteen examinations built and self-tested; `importance` and `lineage` are written but their fixtures do not yet pass the self-test (their expected tables are wrong, not the examinations, as far as is known). The sharded round runs in the Tengoku sandbox. In progress: `mutants` (the same
+Eighteen examinations built and self-tested on their own, plus `importance` and `lineage` whose fixtures do not yet pass (the importance indexer counts zero uses where the fixture plants two: the first thing to fix). The merge of `necessity` and `entailed` into this tree has not yet been built and self-tested together. The sharded round runs in the Tengoku sandbox. In progress: `mutants`
 mutated proofs judged by three independent kernels, a disagreement being a kernel bug), `entailed` (the tree proves a new
 theorem from what it already had, with a checked certificate), `necessity` (every hypothesis justified by a counterexample).

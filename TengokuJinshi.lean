@@ -18,11 +18,13 @@ file under Jinshi/, registered in `examinations` below.
 import Jinshi.Base
 import Jinshi.Decide
 import Jinshi.Duplicate
+import Jinshi.Entailed
 import Jinshi.Forensics
 import Jinshi.Importance
 import Jinshi.Instdrift
 import Jinshi.Lineage
 import Jinshi.Nearname
+import Jinshi.Necessity
 import Jinshi.Roundtrip
 import Jinshi.Unusedhyp
 open Lean Meta Jinshi
@@ -36,11 +38,13 @@ def examinations : List (String × (Ctx → MetaM (Array Finding))) :=
    ("content", content),
    ("decide", decide),
    ("duplicate", duplicate),
+   ("entailed", entailed),
    ("forensics", forensics),
    ("importance", importance),
    ("instdrift", instdrift),
    ("lineage", lineage),
    ("nearname", nearname),
+   ("necessity", necessity),
    ("roundtrip", roundtrip),
    ("unusedhyp", unusedhyp)]
 
