@@ -1,0 +1,8 @@
+[[lean_lib]]
+name = "Jinshi"
+roots = ["Jinshi"]
+globs = ["Jinshi.+"]
+50:[[lean_exe]]
+51-name = "tengoku-jinshi"
+52-root = "TengokuJinshi"
+53-supportInterpreter = true
