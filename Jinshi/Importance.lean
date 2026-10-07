@@ -18,7 +18,8 @@ def usage (env : Environment) : Std.HashMap Name (Nat × Array Name) := Id.run d
   let mut m : Std.HashMap Name (Nat × Array Name) := {}
   for (n, ci) in env.constants.toList do
     if n.isInternal then continue
-    let some v := ci.value? | continue
+    -- `ConstantInfo.value?` is empty for imported theorems on this toolchain: match the record
+    let some v := (match ci with | .thmInfo t => some t.value | .defnInfo d => some d.value | _ => none) | continue
     let here := (moduleOf env n).getD .anonymous
     for k in v.getUsedConstants do
       let (cnt, mods) := m.getD k (0, #[])
@@ -35,6 +36,7 @@ def importance (c : Ctx) : MetaM (Array Finding) := do
     let .thmInfo _ := ci | continue
     unless okName n do continue
     let (cnt, mods) := use.getD n (0, #[])
+    if cnt == 0 then continue  -- a leaf: nothing stands on it, nothing to say
     if cnt ≥ LOAD then
       perModule := perModule.insert m ((perModule.getD m #[]).push (n, cnt))
     out := out.push { check := "importance", severity := "info", module := m, name := n, line := ← lineOf n,

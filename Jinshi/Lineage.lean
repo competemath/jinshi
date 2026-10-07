@@ -34,17 +34,17 @@ def lineage (c : Ctx) : MetaM (Array Finding) := do
     let .thmInfo t := ci | continue
     unless okName n do continue
     if t.value.approxDepth < 3 then continue
-    let fp := canonProof t.levelParams t.value
+    let fp := canonProof t.levelParams (mkApp t.type t.value)  -- the statement and the proof together: `rfl` proves many things
     if fp.sizeWithoutSharing < MIN then continue
     index := index.insert fp.hash ((index.getD fp.hash #[]).push n)
   let mut out := #[]
   for (m, n, ci) in selected c env do
     let .thmInfo t := ci | continue
     unless okName n do continue
-    let fp := canonProof t.levelParams t.value
+    let fp := canonProof t.levelParams (mkApp t.type t.value)
     if fp.sizeWithoutSharing < MIN then continue
     let others := (index.getD fp.hash #[]).filter fun k => k != n &&
-      (match env.find? k with | some (.thmInfo t') => canonProof t'.levelParams t'.value == fp | _ => false)
+      (match env.find? k with | some (.thmInfo t') => canonProof t'.levelParams (mkApp t'.type t'.value) == fp | _ => false)
     if others.isEmpty then continue
     let seedOnes := others.filter (isSeedOrCore c env)
     let sev := if !(c.seed.isPrefixOf m) && !seedOnes.isEmpty then "warn" else "info"

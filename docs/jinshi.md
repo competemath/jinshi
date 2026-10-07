@@ -37,6 +37,7 @@ finding that, if confirmed, means a theorem is not what it claims; `warn` wants 
 |---|---|---|---|
 | `replay` | `scripts/jinshi/run.py` → `leanchecker <module>` | the toolchain's own kernel re-adds every declaration of the module to the environment of its imports: an `.olean` whose contents the kernel would not accept, or that bypassed the kernel, fails here | fail |
 | `lean4lean` | `scripts/jinshi/run.py` → `lean4lean <module>` | the same replay by [lean4lean](https://github.com/digama0/lean4lean), a kernel written in Lean (derived from the C++ one, so not independent in design, but a second implementation); built by the workflow on the pinned toolchain with the Batteries commit the tree seeded | fail |
+| `mutants` | `scripts/jinshi/run.py --checks mutants` → `tengoku-jinshi --check mutants --mutants-out DIR` → `scripts/jinshi/mutants.py` | differential kernel fuzzing seeded from the tree's own proofs (Jinshi/Mutants.lean): for the first 20 theorems of each module (JINSHI_MUTANTS_PER_MODULE, by name), eight mutation operators at fixed positions, no randomness: two same-typed arguments of an application swapped, a subterm replaced by another of the same type, `Eq.refl a` made `Eq.refl b`, an argument dropped, a proof replaced by a proof of another proposition, a universe level raised, a `Nat` literal of the statement raised with the proof kept, a subterm eta-expanded (well-typed: every kernel must accept). Each mutant `<theorem>_mut<k>` is judged by Lean's kernel in the examination's own process (verdict and refusal kind: info), written UNCHECKED as a module of its own, `JinshiMutants.<Module>.M<k>` (one declaration, importing the module), and judged by `leanchecker` and `lean4lean`, one kernel run per mutant; kernels that disagree on a mutant: one of them has a bug, the module is the reproducer. Off unless `--checks` names it (it writes files and runs kernels); the fixture opts in with `jinshi: mutants` in its module doc | fail (disagreement) / warn (a kernel timed out) / info |
 | `reproduce` | `scripts/jinshi/run.py` (the same re-elaboration) | the re-elaborated module's `.olean` compared byte for byte with the one the attested cache ships: a difference is a compiled artefact that is not what the source gives (tampering, a stale cache, or a non-reproducible compile) | warn |
 | `autoimplicit` | `scripts/jinshi/run.py` → `lean -DautoImplicit=false -DrelaxedAutoImplicit=false <file>` | re-elaborates the module with auto-bound implicits off; every `unknown identifier` names a statement in which Lean quantified a name the author never bound. A module that itself sets `autoImplicit true` is reported as opting in | fail |
 | `tcb` | `TengokuJinshi.lean` | the trusted-computing-base inventory of the round: every `unsafe`, `partial`, `opaque`, `implemented_by`, `extern`, `axiom`, `initialize`, and every declaration whose type lives in the elaborator's monads; a theorem whose statement mentions one | warn (statement) / info (inventory) |
@@ -102,13 +103,18 @@ python3 scripts/jinshi/run.py --round 0 --out jinshi-out      # replay, autoimpl
 ## 6. Status
 
 Built, one file per examination under `Jinshi/` with its own fixture and table under `tools/jinshi/fixtures/`: the partition;
-`replay`, `lean4lean`, `autoimplicit`, `reproduce`, `options` and `toolchain` in the driver; `tcb`, `shadow`, `nearname`, `arith`,
-`dossier`, `content`, `decide`, `duplicate`, `instdrift`, `unusedhyp`, `roundtrip`, `forensics`, `importance` and `lineage` in the executable; the round in shards. On
-`dossier`, `content`, `decide`, `duplicate`, `entailed`, `instdrift`, `unusedhyp`, `roundtrip` and `forensics` in the executable; the round in shards. On
+`replay`, `lean4lean`, `autoimplicit`, `reproduce`, `options`, `toolchain` and `mutants` in the driver; `tcb`, `shadow`,
+`nearname`, `arith`, `dossier`, `content`, `decide`, `duplicate`, `instdrift`, `unusedhyp`, `roundtrip`, `forensics`,
+`importance`, `lineage`, `necessity`, `entailed` and the generator of `mutants` in the executable; the round in shards. On
 2026-10-07 the registry showed every `soundness` fix in the pinned `v4.34.0-rc2` (the July 2026 kernel fixes are its ancestors;
 the two of 18 August are backports on its release branch) and two `runtime-soundness` fixes of September 2026 that it lacks
 (reference-count overflow in the runtime, not the kernel: the next toolchain bump takes them).
 
-Not yet: the per-module Jinshi grade as a tag; notation overloading under `shadow`; the
-dossier for the seed's own definitions; the examinations at pull-request time on the PR's own modules, with the near-name and
-notation report as one comment.
+Round 0 (2026-10-07, eight shards, 932 modules) ran the driver's checks over the whole round: no kernel refused anything the
+tree ships (the one `lean4lean` refusal was a realized `congr_simp` name, now classified); the tree compiles with `autoImplicit`
+on and several libraries lean on it (`Imoshortlist`, `Tautology`, the seed's `Std`, `Tactic` and `Testing` folders); two modules
+raise their budgets. The executable's examinations were lost that round to an uncaught heartbeat cap (fixed); `mutants`,
+`entailed` and `necessity` have not yet run on the tree and are costed per theorem, so a round names them explicitly.
+
+Not yet: the per-module Jinshi grade as a tag; notation overloading under `shadow`; the dossier for the seed's own definitions;
+the examinations at pull-request time on the PR's own modules, with the near-name and notation report as one comment.

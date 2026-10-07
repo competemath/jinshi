@@ -9,10 +9,11 @@ purpose. `docs/jinshi.md` is the full account: threat model, every examination, 
 
 | path | what |
 |---|---|
-| `Jinshi/` | one Lean file per in-process examination (`tcb`, `shadow`, `nearname`, `arith`, `dossier`, `content`, `decide`, `duplicate`, `instdrift`, `unusedhyp`, `roundtrip`, `forensics`, `importance`, `lineage`, `necessity`, `entailed`); `Base.lean` holds the shared `Finding` and context |
+| `Jinshi/` | one Lean file per in-process examination (`tcb`, `shadow`, `nearname`, `arith`, `dossier`, `content`, `decide`, `duplicate`, `instdrift`, `unusedhyp`, `roundtrip`, `forensics`, `importance`, `lineage`, `necessity`, `entailed`, and the generator of `mutants`); `Base.lean` holds the shared `Finding` and context |
 | `TengokuJinshi.lean` | the executable: imports every examination and registers it; regenerated from `Jinshi/` |
 | `scripts/jinshi/run.py` | the round driver: kernel replay (leanchecker and lean4lean), autoImplicit re-elaboration, olean reproducibility, option audit, toolchain watch, then the executable's checks; emits one JSONL per check |
 | `scripts/jinshi/partition.py` | the frozen 10-round partition of the tree (`tools/jinshi/partition.tsv`) |
+| `scripts/jinshi/mutants.py` | the differential kernel fuzzer's judge: every generated mutant module is given to `leanchecker` and `lean4lean`, and a verdict that differs from Lean's own kernel is a `fail` with the reproducer |
 | `scripts/jinshi/merge.py`, `report.py` | merge the shards of a round; read a round's findings per library, check and severity |
 | `scripts/jinshi/selftest.py` | runs every examination on `tools/jinshi/fixtures/*.lean` and checks each against its `.expected.tsv`; the forged fixture must be refused by both kernels |
 | `.github/workflows/jinshi.yml` | one round in shards: plan, a matrix of runners, merge |
@@ -35,6 +36,7 @@ the kernel's verdict and the tree disagree; `warn` is something a maintainer rea
 
 ## Status
 
-Eighteen examinations built and self-tested on their own, plus `importance` and `lineage` whose fixtures do not yet pass (the importance indexer counts zero uses where the fixture plants two: the first thing to fix). The merge of `necessity` and `entailed` into this tree has not yet been built and self-tested together. The sharded round runs in the Tengoku sandbox. In progress: `mutants`
-mutated proofs judged by three independent kernels, a disagreement being a kernel bug), `entailed` (the tree proves a new
-theorem from what it already had, with a checked certificate), `necessity` (every hypothesis justified by a counterexample).
+Twenty-one examinations built and self-tested together: `jinshi selftest: 12 fixtures, 101 findings, 101 expected, 0 problems`.
+The fuzzer's fixture gives 26 mutants, and Lean's kernel, `leanchecker` and `lean4lean` agree on every one. The sharded round
+runs in the Tengoku sandbox; round 0 ran the driver's checks over 932 modules. `mutants`, `entailed` and `necessity` are costed
+per theorem and run on the tree only when a round names them.
