@@ -9,10 +9,11 @@ purpose. `docs/jinshi.md` is the full account: threat model, every examination, 
 
 | path | what |
 |---|---|
-| `Jinshi/` | one Lean file per in-process examination (`tcb`, `shadow`, `nearname`, `arith`, `dossier`, `content`, `decide`, `duplicate`, `instdrift`, `unusedhyp`, `roundtrip`, `forensics`, `importance`, `lineage`, `necessity`, `entailed`, and the generator of `mutants`); `Base.lean` holds the shared `Finding` and context |
+| `Jinshi/` | one Lean file per in-process examination (`tcb`, `shadow`, `nearname`, `arith`, `dossier`, `content`, `decide`, `duplicate`, `instdrift`, `unusedhyp`, `roundtrip`, `forensics`, `importance`, `lineage`, `necessity`, `entailed`, `arithUniverse`, `nested`, and the generator of `mutants`); `Base.lean` holds the shared `Finding` and context |
 | `TengokuJinshi.lean` | the executable: imports every examination and registers it; regenerated from `Jinshi/` |
 | `scripts/jinshi/run.py` | the round driver: kernel replay (leanchecker and lean4lean), autoImplicit re-elaboration, olean reproducibility, option audit, toolchain watch, then the executable's checks; emits one JSONL per check |
 | `scripts/jinshi/partition.py` | the frozen 10-round partition of the tree (`tools/jinshi/partition.tsv`) |
+| `scripts/jinshi/nanoda.py` | the third kernel's judge: Nanoda gets the same mutant modules and its verdict is compared with Lean's own |
 | `scripts/jinshi/mutants.py` | the differential kernel fuzzer's judge: every generated mutant module is given to `leanchecker` and `lean4lean`, and a verdict that differs from Lean's own kernel is a `fail` with the reproducer |
 | `scripts/jinshi/merge.py`, `report.py` | merge the shards of a round; read a round's findings per library, check and severity |
 | `scripts/jinshi/selftest.py` | runs every examination on `tools/jinshi/fixtures/*.lean` and checks each against its `.expected.tsv`; the forged fixture must be refused by both kernels |
@@ -40,3 +41,7 @@ Twenty-one examinations built and self-tested together: `jinshi selftest: 12 fix
 The fuzzer's fixture gives 26 mutants, and Lean's kernel, `leanchecker` and `lean4lean` agree on every one. The sharded round
 runs in the Tengoku sandbox; round 0 ran the driver's checks over 932 modules. `mutants`, `entailed` and `necessity` are costed
 per theorem and run on the tree only when a round names them.
+
+## License
+
+Apache-2.0, like the rest of Tengoku.
